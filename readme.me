@@ -1,0 +1,97 @@
+# Flask App Deployment README
+
+This README provides instructions for deploying a Flask application on an Apache server.
+
+## Prerequisites
+
+Before proceeding with the deployment, ensure you have the following:
+
+- Access to an AWS instance with Ubuntu installed.
+- Basic knowledge of Linux commands and Apache server configuration.
+- The Flask application source code ready in a folder named `app`.
+
+## Deployment Steps
+
+Follow these steps to deploy your Flask application:
+
+1. **Create Flask App Directory**: 
+   ```
+   mkdir /home/ubuntu/flaskapp
+   ```
+
+2. **Copy App Content**: 
+   ```
+   cp -r app/* /home/ubuntu/flaskapp
+   ```
+
+3. **Create Symbolic Link**: 
+   ```
+   sudo ln -sT /home/ubuntu/flaskapp /var/www/html/flaskapp
+   ```
+
+4. **Configure Apache**:
+
+   - Edit Apache configuration file:
+     ```
+     sudo nano /etc/apache2/sites-available/000-default.conf
+     ```
+
+   - Change the default configuration as follows:
+     ```
+     DocumentRoot /var/www/html/flaskapp
+
+     WSGIDaemonProcess flaskapp threads=5
+     WSGIScriptAlias /flaskapp /var/www/html/flaskapp/flaskapp.wsgi process-group=flaskapp application-group=%{GLOBAL}
+
+     <Directory /var/www/html/flaskapp>
+         AllowOverride None
+         Require all granted
+     </Directory>
+     ```
+
+5. **Update WSGI Script**:
+
+   - Edit `flaskapp.wsgi`:
+     ```
+     sudo nano /var/www/html/flaskapp/flaskapp.wsgi
+     ```
+
+   - Change the script to:
+     ```
+     import sys
+     sys.path.insert(0, '/home/ubuntu/flaskapp')
+     ```
+
+6. **Adjust Permissions**:
+
+   Ensure that the Apache user can access the Flask app directory:
+   ```
+   sudo chown -R www-data:www-data /home/ubuntu/flaskapp
+   ```
+
+7. **Update Flask App**:
+
+   - Edit `app.py` within the Flask app directory.
+   - Change the app's run configuration to use any IP:
+     ```python
+     app.run(host="0.0.0.0", port=8080)
+     ```
+
+8. **Open Port 8080**:
+
+   Update your AWS security group settings to allow inbound traffic on port 8080.
+
+9. **Restart Apache Server**:
+   ```
+   sudo systemctl restart apache2
+   ```
+
+## Accessing the Application
+
+Once the deployment is complete, you can access your Flask application at `http://your_server_ip/flaskapp`.
+
+## Notes
+
+- Ensure that your Flask application is properly configured for production use, including security measures such as setting proper `SECRET_KEY`, disabling debug mode, and implementing appropriate error handling.
+- Regularly update and maintain your server's security patches to prevent vulnerabilities.
+- Backup your data and configurations regularly to prevent data loss.
