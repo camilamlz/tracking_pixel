@@ -1,0 +1,5 @@
+
+    apache2
+    libapach2-mod-wsgi-py3
+    python-pip
+    python 3.8+
